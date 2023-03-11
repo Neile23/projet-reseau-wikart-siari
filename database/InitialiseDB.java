@@ -29,7 +29,7 @@ public class InitialiseDB {
             
             String messagesTable = "CREATE TABLE IF NOT EXISTS messages (\n"
                     + " id integer PRIMARY KEY AUTOINCREMENT,\n"
-                    + " message text NOT NULL,\n"
+                    + " message text(256) NOT NULL,\n"
                     + " user_id integer NOT NULL,\n"
                     + " FOREIGN KEY (user_id) REFERENCES users (id)\n"
                     + ");";
@@ -40,6 +40,7 @@ public class InitialiseDB {
             stmt.execute(messagesTable);
             logger.log(Level.INFO,"The table 'messages' has been created.\n");
             
+            conn.close();
 
         } catch (SQLException e) {  
             logger.log(Level.INFO,e.getMessage());  

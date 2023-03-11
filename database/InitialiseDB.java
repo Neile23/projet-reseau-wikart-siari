@@ -1,4 +1,4 @@
-package database;
+package Database;
 
 import java.sql.*;
 import java.util.logging.*;
@@ -47,9 +47,5 @@ public class InitialiseDB {
         } catch (ClassNotFoundException e1) {
             logger.log(Level.INFO,e1.getMessage());
         }
-    }  
-  
-    public static void main(String[] args) {  
-        createNewDatabase();  
     }  
 }  

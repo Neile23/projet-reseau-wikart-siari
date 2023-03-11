@@ -37,6 +37,30 @@ public class UsersTableManager {
         }
     }
 
+    public int getUserId(String name) throws SQLException {
+        String sql = "SELECT id FROM users WHERE name = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, name);
+        ResultSet rs = pstmt.executeQuery();
+        return rs.getInt("id");
+    }
+
+    public String getUserName(int id) throws SQLException {
+        String sql = "SELECT name FROM users WHERE id = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setInt(1, id);
+        ResultSet rs = pstmt.executeQuery();
+        return rs.getString("name");
+    }
+
+    public boolean userExists(String name) throws SQLException {
+        String sql = "SELECT name FROM users WHERE name = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, name);
+        ResultSet rs = pstmt.executeQuery();
+        return rs.next();
+    }
+
     public void close() throws SQLException {
         conn.close();
     }

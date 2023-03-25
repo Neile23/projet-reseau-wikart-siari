@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+    <classpathentry kind="lib" path="lib/sqlite-jdbc-3.41.0.0.jar"/>
+</classpath>

@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 import Database.MessagesTableManager;
 import Database.UsersTableManager;
 
-
 public class Serveur implements Runnable {
     private static final Logger logger = Logger.getLogger(Serveur.class.getName());
 
@@ -35,10 +34,10 @@ public class Serveur implements Runnable {
         try (BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
 
-            while(true){
+            while (true) {
                 String request = "";
                 String line = input.readLine();
-                
+
                 while (line != null && !line.isEmpty()) {
                     request += line + "\r\n";
                     line = input.readLine();
@@ -47,7 +46,7 @@ public class Serveur implements Runnable {
                 String[] parts = request.split(" ", 2);
                 String command = parts[0];
                 String body = parts.length > 1 ? parts[1] : "";
-                
+
                 if (command.equals(PUBLISH_COMMAND)) {
                     handlePublishCommand(body, output);
                 } else {
@@ -55,47 +54,66 @@ public class Serveur implements Runnable {
                 }
                 output.flush();
             }
-            
-        } catch (IOException e) {
-            logger.log(Level.WARNING,"IO Error: " + e.getMessage());
-        }
 
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "IO Error: " + e.getMessage());
+        }
 
     }
 
     private void handlePublishCommand(String body, BufferedWriter output) throws IOException {
-        int authorIndex = body.indexOf(AUTHOR_PREFIX);
-        if (authorIndex == -1) {
+        String author = getAuthorFromBody(body);
+        if (author == null) {
             output.write(ERROR_RESPONSE + "\n");
             return;
         }
 
-        String author = body.substring(AUTHOR_PREFIX.length(), body.indexOf("\r"));
-        String message = body.substring(body.indexOf("\r\n") + 2, body.length());
-        
-        if (message.isEmpty()) {
+        String message = getMessageFromBody(body);
+        if (message == null || message.isEmpty()) {
             output.write(ERROR_RESPONSE + "\n");
             return;
         }
 
         System.out.println(author + " : " + message);
-        //! ajouter un test pour savoir si l'utilisateur existe ou sinon l'ajouter
-        addMessageToDatabase(message, author);
-        output.write(OK_RESPONSE + "\n");
+        if (addMessageToDatabase(message, author)) {
+            output.write(OK_RESPONSE + "\n");
+        } else {
+            output.write(ERROR_RESPONSE + "\n");
+        }
     }
 
-    private void addMessageToDatabase(String message, String author) {
+    private String getAuthorFromBody(String body) {
+        int authorIndex = body.indexOf(AUTHOR_PREFIX);
+        if (authorIndex == -1) {
+            return null;
+        }
+        return body.substring(AUTHOR_PREFIX.length(), body.indexOf("\r"));
+    }
+
+    private String getMessageFromBody(String body) {
+        int messageIndex = body.indexOf("\r\n") + 2;
+        if (messageIndex == -1) {
+            return null;
+        }
+        return body.substring(messageIndex, body.length());
+    }
+
+    private boolean addMessageToDatabase(String message, String author) {
         MessagesTableManager messagesTableManager;
         UsersTableManager usersTableManager;
         try {
             usersTableManager = new UsersTableManager();
             int userId = usersTableManager.getUserId(author);
             usersTableManager.close();
+
             messagesTableManager = new MessagesTableManager();
             messagesTableManager.addMessage(message, userId);
             messagesTableManager.close();
+            return true;
+
         } catch (SQLException | ClassNotFoundException e) {
-            logger.log(Level.WARNING,"Error while adding message to database: " + e.getMessage());
+            logger.log(Level.WARNING, "Error while adding message to database: " + e.getMessage());
+            return false;
         }
     }
 
@@ -106,7 +124,7 @@ public class Serveur implements Runnable {
                 (new Thread(new Serveur(clientSocket))).start();
             }
         } catch (IOException e) {
-            logger.log(Level.WARNING,"IO error: " + e.getMessage());
+            logger.log(Level.WARNING, "IO error: " + e.getMessage());
         }
     }
 

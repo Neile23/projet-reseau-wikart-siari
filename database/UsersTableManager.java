@@ -8,7 +8,7 @@ public class UsersTableManager {
     private final Logger logger = Logger.getLogger(UsersTableManager.class.getName());
     private final String url = "jdbc:sqlite:database/database.db";
     private Connection conn;
-    
+
     public UsersTableManager() throws SQLException, ClassNotFoundException {
         conn = DriverManager.getConnection(url);
         Class.forName("org.sqlite.JDBC");
@@ -33,7 +33,7 @@ public class UsersTableManager {
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(sql);
         while (rs.next()) {
-            logger.log(Level.CONFIG ,rs.getInt("id") + "\t" + rs.getString("name"));
+            logger.log(Level.CONFIG, rs.getInt("id") + "\t" + rs.getString("name"));
         }
     }
 
@@ -64,5 +64,5 @@ public class UsersTableManager {
     public void close() throws SQLException {
         conn.close();
     }
-    
+
 }

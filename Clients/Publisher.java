@@ -23,16 +23,64 @@ public class Publisher {
                 BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
 
             while (true) {
-                System.out.println("Message : ");
-                String message = scanner.nextLine();
-                if (message == null || message.equals("\u0004")) {
+                System.out.println("Enter command (PUBLISH, RCV_IDS, RCV_MSG) or type 'exit' to quit: ");
+                String command = scanner.nextLine();
+
+                if ("exit".equalsIgnoreCase(command)) {
                     break;
                 }
-                String request = "PUBLISH author:@" + author + "\r\n" + message + "\r\n\r\n";
-                output.write(request);
+
+                switch (command.toUpperCase()) {
+                    case "PUBLISH":
+                        System.out.println("Message : ");
+                        String message = scanner.nextLine();
+                        String request = "PUBLISH author:" + author + "\r\n" + message + "\r\n\r\n";
+                        output.write(request);
+                        break;
+
+                    case "RCV_IDS":
+                        System.out.println("Enter the author (@user, optional): ");
+                        String targetAuthor = scanner.nextLine();
+                        System.out.println("Enter the tag (#tag, optional): ");
+                        String tag = scanner.nextLine();
+                        System.out.println("Enter since_id (id, optional): ");
+                        String sinceId = scanner.nextLine();
+                        System.out.println("Enter limit (n, optional, default is 5): ");
+                        String limit = scanner.nextLine();
+
+                        request = "RCV_IDS";
+                        if (!targetAuthor.isEmpty()) {
+                            request += " author:" + targetAuthor;
+                        }
+                        if (!tag.isEmpty()) {
+                            request += " tag:" + tag;
+                        }
+                        if (!sinceId.isEmpty()) {
+                            request += " since_id:" + sinceId;
+                        }
+                        if (!limit.isEmpty()) {
+                            request += " limit:" + limit;
+                        }
+                        request += "\r\n\r\n";
+                        output.write(request);
+                        break;
+
+                    case "RCV_MSG":
+                        System.out.println("Enter the message ID: ");
+                        int messageId = scanner.nextInt();
+                        scanner.nextLine(); // Consume the newline
+                        request = "RCV_MSG msg_id:" + messageId + "\r\n\r\n";
+                        output.write(request);
+                        break;
+
+                    default:
+                        System.out.println("Invalid command.");
+                        continue;
+                }
+
                 output.flush();
 
-                // Lecture de la réponse du serveur
+                // Read server response
                 String response = input.readLine();
                 while (response == null) {
                     Thread.sleep(100);

@@ -122,7 +122,7 @@ public class Serveur implements Runnable {
         }
     }
 
-    private Set<String> extractTagsFromMessage(String message) {
+    Set<String> extractTagsFromMessage(String message) {
         Set<String> tags = new HashSet<>();
         Matcher matcher = Pattern.compile("#\\w+").matcher(message);
         while (matcher.find()) {
@@ -131,7 +131,7 @@ public class Serveur implements Runnable {
         return tags;
     }
 
-    private String getAuthorFromBody(String body) {
+    String getAuthorFromBody(String body) {
         int authorIndex = body.indexOf(AUTHOR_PREFIX);
         if (authorIndex == -1) {
             return null;

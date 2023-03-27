@@ -15,8 +15,9 @@ public class MessageManager {
     private QueryPreparer queryPreparer;
     private QueryExecutor queryExecutor;
 
-    public MessageManager(Connection conn) {
+    public MessageManager(Connection conn) throws SQLException {
         this.conn = conn;
+        this.conn.setAutoCommit(true);
         this.queryBuilder = new QueryBuilder();
         this.queryPreparer = new QueryPreparer();
         this.queryExecutor = new QueryExecutor();
@@ -48,6 +49,7 @@ public class MessageManager {
 
     public List<Integer> getMessageIds(String author, String tag, int sinceId, int limit) throws SQLException {
         String sql = queryBuilder.buildSelectMessageIdsQuery(author, tag, sinceId, limit);
+        System.out.println("SQL : " + sql);
         PreparedStatement pstmt = queryPreparer.prepareSelectMessageIdsStatement(conn, sql, author, tag, sinceId,
                 limit);
         return queryExecutor.executeSelectMessageIdsQuery(pstmt);
@@ -63,6 +65,20 @@ public class MessageManager {
         String sql = queryBuilder.buildSelectUserIdByMessageIdQuery();
         PreparedStatement pstmt = queryPreparer.prepareSelectUserIdByMessageIdStatement(conn, sql, messageId);
         return queryExecutor.executeSelectUserIdByMessageIdQuery(pstmt);
+    }
+
+    public int getLastMessageId() throws SQLException {
+        String sql = queryBuilder.buildSelectLastMessageIdQuery();
+        PreparedStatement pstmt = queryPreparer.prepareSelectLastMessageIdStatement(conn, sql);
+        return queryExecutor.executeSelectLastMessageIdQuery(pstmt);
+    }
+
+    public void addTag(String tag, int messageId) throws SQLException {
+        String sql = "INSERT INTO tags (tag, message_id) VALUES (?, ?)";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, tag);
+        pstmt.setInt(2, messageId);
+        pstmt.executeUpdate();
     }
 
 }

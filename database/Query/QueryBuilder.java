@@ -48,7 +48,7 @@ public class QueryBuilder {
             sql.append(" AND user_id = (SELECT id FROM users WHERE name = ?)");
         }
         if (tag != null) {
-            sql.append(" AND message LIKE ?");
+            sql.append(" AND id IN (SELECT message_id FROM tags WHERE tag = ?)");
         }
         if (sinceId >= 0) {
             sql.append(" AND id > ?");
@@ -63,6 +63,10 @@ public class QueryBuilder {
 
     public String buildSelectUserIdByMessageIdQuery() {
         return "SELECT user_id FROM messages WHERE id = ?";
+    }
+
+    public String buildSelectLastMessageIdQuery() {
+        return "SELECT * FROM messages ORDER BY id DESC LIMIT 1";
     }
 
 }

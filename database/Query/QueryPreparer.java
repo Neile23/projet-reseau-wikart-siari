@@ -68,12 +68,13 @@ public class QueryPreparer {
     public PreparedStatement prepareSelectMessageIdsStatement(Connection conn, String sql, String author, String tag,
             int sinceId, int limit) throws SQLException {
         PreparedStatement pstmt = conn.prepareStatement(sql);
+        System.out.println("SQL : " + sql + " " + author + " " + tag + " " + sinceId + " " + limit);
         int index = 1;
         if (author != null) {
             pstmt.setString(index++, author);
         }
         if (tag != null) {
-            pstmt.setString(index++, "%" + tag + "%");
+            pstmt.setString(index++, tag.trim());
         }
         if (sinceId >= 0) {
             pstmt.setInt(index++, sinceId);
@@ -93,6 +94,11 @@ public class QueryPreparer {
             throws SQLException {
         PreparedStatement pstmt = conn.prepareStatement(sql);
         pstmt.setInt(1, messageId);
+        return pstmt;
+    }
+
+    public PreparedStatement prepareSelectLastMessageIdStatement(Connection conn, String sql) throws SQLException {
+        PreparedStatement pstmt = conn.prepareStatement(sql);
         return pstmt;
     }
 

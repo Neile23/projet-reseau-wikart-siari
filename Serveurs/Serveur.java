@@ -8,9 +8,13 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import Database.MessageManager;
 import Database.UserManager;
@@ -65,7 +69,7 @@ public class Serveur implements Runnable {
                     request += line + "\r\n";
                     line = input.readLine();
                 }
-
+                
                 String[] parts = request.split(" ", 2);
                 String command = parts[0];
                 String body = parts.length > 1 ? parts[1] : "";
@@ -77,7 +81,7 @@ public class Serveur implements Runnable {
                 } else if (command.equals(RCV_MSG_COMMAND)) {
                     handleRcvMsgCommand(body, output);
                 } else {
-                    output.write(ERROR_RESPONSE + "\r\n");
+                    output.write(ERROR_RESPONSE + "\r\n\r\n");
                 }
                 output.flush();
             }
@@ -91,22 +95,45 @@ public class Serveur implements Runnable {
     private void handlePublishCommand(String body, BufferedWriter output) throws IOException {
         String author = getAuthorFromBody(body);
         if (author == null) {
-            output.write(ERROR_RESPONSE + "\n");
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
             return;
         }
 
         String message = getMessageFromBody(body);
         if (message == null || message.isEmpty()) {
-            output.write(ERROR_RESPONSE + "\n");
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
             return;
         }
 
-        System.out.println(author + " : " + message);
-        if (addMessageToDatabase(message, author)) {
-            output.write(OK_RESPONSE + "\n");
+        System.out.println("@" + author + " : " + message);
+        int messageId = addMessageToDatabase(message, author);
+        if (messageId != -1) {
+            // Extract tags from the message
+            Set<String> tags = extractTagsFromMessage(message);
+
+            try {
+                MessageManager messagesTableManager = new MessageManager(conn);
+                // Add tags to the database
+                for (String tag : tags) {
+                    messagesTableManager.addTag(tag, messageId);
+                }
+                output.write(OK_RESPONSE + "\r\n\r\n");
+            } catch (SQLException e) {
+                logger.log(Level.WARNING, "Error while adding tags to database: " + e.getMessage());
+                output.write(ERROR_RESPONSE + "\r\n\r\n");
+            }
         } else {
-            output.write(ERROR_RESPONSE + "\n");
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
         }
+    }
+
+    private Set<String> extractTagsFromMessage(String message) {
+        Set<String> tags = new HashSet<>();
+        Matcher matcher = Pattern.compile("#\\w+").matcher(message);
+        while (matcher.find()) {
+            tags.add(matcher.group());
+        }
+        return tags;
     }
 
     private String getAuthorFromBody(String body) {
@@ -125,51 +152,59 @@ public class Serveur implements Runnable {
         return body.substring(messageIndex, body.length());
     }
 
-    private boolean addMessageToDatabase(String message, String author) {
+    private int addMessageToDatabase(String message, String author) {
         try {
             UserManager usersTableManager = new UserManager(conn);
+
+            // Check if the user exists, and if not, add them to the database
+            if (!usersTableManager.userExists(author)) {
+                usersTableManager.addUser(author);
+            }
+
             int userId = usersTableManager.getUserId(author);
 
             MessageManager messagesTableManager = new MessageManager(conn);
             messagesTableManager.addMessage(message, userId);
-            return true;
+            
+            return messagesTableManager.getLastMessageId();
 
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Error while adding message to database: " + e.getMessage());
-            return false;
+            return -1;
         }
     }
-
 
     private void handleRcvIdsCommand(String body, BufferedWriter output) throws IOException {
         try {
             MessageManager messagesTableManager = new MessageManager(conn);
             String author = extractValueFromBody(body, AUTHOR_PREFIX);
+            author = author == null ? null : author.trim();
             String tag = extractValueFromBody(body, TAG_PREFIX);
             String sinceIdStr = extractValueFromBody(body, SINCE_ID_PREFIX);
             String limitStr = extractValueFromBody(body, LIMIT_PREFIX);
-            int sinceId = sinceIdStr == null ? -1 : Integer.parseInt(sinceIdStr);
-            int limit = limitStr == null ? DEFAULT_LIMIT : Integer.parseInt(limitStr);
+            int sinceId = sinceIdStr == null ? -1 : Integer.parseInt(sinceIdStr.trim());
+            int limit = limitStr == null ? DEFAULT_LIMIT : Integer.parseInt(limitStr.trim());
             List<Integer> messageIds = messagesTableManager.getMessageIds(author, tag, sinceId, limit);
             StringBuilder response = new StringBuilder(MSG_IDS_RESPONSE);
             for (int messageId : messageIds) {
                 response.append(" ").append(messageId);
             }
-            output.write(response.toString() + "\r\n");
+            output.write(response.toString() + "\r\n\r\n");
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Error while fetching message IDs: " + e.getMessage());
-            output.write(ERROR_RESPONSE + "\r\n");
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
         }
     }
 
     private void handleRcvMsgCommand(String body, BufferedWriter output) throws IOException {
         String msgIdStr = extractValueFromBody(body, "msg_id:");
         if (msgIdStr == null) {
-            output.write(ERROR_RESPONSE + "\r\n");
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
             return;
         }
 
-        int msgId = Integer.parseInt(msgIdStr);
+        int msgId = Integer.parseInt(msgIdStr.trim());
+
         try {
             MessageManager messagesTableManager = new MessageManager(conn);
             UserManager usersTableManager = new UserManager(conn);
@@ -180,16 +215,16 @@ public class Serveur implements Runnable {
             if (message != null && author != null) {
                 output.write(MSG_RESPONSE + " " + AUTHOR_PREFIX + author + "\r\n" + message + "\r\n");
             } else {
-                output.write(ERROR_RESPONSE + "\r\n");
+                output.write(ERROR_RESPONSE + "\r\n\r\n");
             }
         } catch (SQLException e) {
             logger.log(Level.WARNING, "Error while fetching message: " + e.getMessage());
-            output.write(ERROR_RESPONSE + "\r\n");
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
         }
     }
 
     private String extractValueFromBody(String body, String prefix) {
-        int prefixIndex = body.indexOf(prefix);
+        int prefixIndex = body.toLowerCase().indexOf(prefix.toLowerCase());
         if (prefixIndex == -1) {
             return null;
         }

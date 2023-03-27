@@ -39,13 +39,13 @@ public class Publisher {
                         break;
 
                     case "RCV_IDS":
-                        System.out.println("Enter the author (@user, optional): ");
+                        System.out.println("Enter the author ('user', optional): ");
                         String targetAuthor = scanner.nextLine();
-                        System.out.println("Enter the tag (#tag, optional): ");
+                        System.out.println("Enter the tag ('#tag', optional): ");
                         String tag = scanner.nextLine();
-                        System.out.println("Enter since_id (id, optional): ");
+                        System.out.println("Enter since_id ('id', optional): ");
                         String sinceId = scanner.nextLine();
-                        System.out.println("Enter limit (n, optional, default is 5): ");
+                        System.out.println("Enter limit ('n', optional, default is 5): ");
                         String limit = scanner.nextLine();
 
                         request = "RCV_IDS";
@@ -81,20 +81,21 @@ public class Publisher {
                 output.flush();
 
                 // Read server response
-                String response = input.readLine();
-                while (response == null) {
-                    Thread.sleep(100);
-                    response = input.readLine();
+                StringBuilder responseBuilder = new StringBuilder();
+                String responseLine = input.readLine();
+                while (responseLine != null && !responseLine.isEmpty()) {
+                    responseBuilder.append(responseLine).append("\n");
+                    responseLine = input.readLine();
                 }
-                System.out.println("Server response: " + response);
+                String response = responseBuilder.toString().trim();
+                System.out.println("Server response:\n" + response);
+
             }
 
             scanner.close();
 
         } catch (IOException e) {
             logger.log(Level.WARNING, "IO Error: " + e.getMessage());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 

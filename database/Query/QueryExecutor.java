@@ -45,6 +45,7 @@ public class QueryExecutor {
         while (rs.next()) {
             messageIds.add(rs.getInt("id"));
         }
+        System.out.println("messagesIDS: " + messageIds);
         return messageIds;
     }
 
@@ -92,6 +93,18 @@ public class QueryExecutor {
         ResultSet rs = pstmt.executeQuery();
         if (rs.next()) {
             return rs.getInt("id");
+        }
+        return -1;
+    }
+
+    public int executeSelectLastMessageIdQuery(PreparedStatement pstmt) {
+        try {
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return -1;
     }

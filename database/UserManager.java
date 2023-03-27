@@ -15,8 +15,9 @@ public class UserManager {
     private QueryPreparer queryPreparer;
     private QueryExecutor queryExecutor;
 
-    public UserManager(Connection conn) {
+    public UserManager(Connection conn) throws SQLException {
         this.conn = conn;
+        this.conn.setAutoCommit(true);
         this.queryBuilder = new QueryBuilder();
         this.queryPreparer = new QueryPreparer();
         this.queryExecutor = new QueryExecutor();

@@ -68,7 +68,6 @@ public class QueryPreparer {
     public PreparedStatement prepareSelectMessageIdsStatement(Connection conn, String sql, String author, String tag,
             int sinceId, int limit) throws SQLException {
         PreparedStatement pstmt = conn.prepareStatement(sql);
-        System.out.println("SQL : " + sql + " " + author + " " + tag + " " + sinceId + " " + limit);
         int index = 1;
         if (author != null) {
             pstmt.setString(index++, author);

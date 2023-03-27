@@ -45,7 +45,6 @@ public class QueryExecutor {
         while (rs.next()) {
             messageIds.add(rs.getInt("id"));
         }
-        System.out.println("messagesIDS: " + messageIds);
         return messageIds;
     }
 

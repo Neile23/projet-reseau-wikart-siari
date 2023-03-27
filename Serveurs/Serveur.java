@@ -18,13 +18,8 @@ import java.util.regex.Pattern;
 
 import Database.MessageManager;
 import Database.UserManager;
-import Database.MessageManager;
-import Database.Query.QueryBuilder;
-import Database.Query.QueryPreparer;
-import Database.Query.QueryExecutor;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 
 public class Serveur implements Runnable {
     private static final Logger logger = Logger.getLogger(Serveur.class.getName());
@@ -187,7 +182,7 @@ public class Serveur implements Runnable {
             List<Integer> messageIds = messagesTableManager.getMessageIds(author, tag, sinceId, limit);
             StringBuilder response = new StringBuilder(MSG_IDS_RESPONSE);
             for (int messageId : messageIds) {
-                response.append(" ").append(messageId);
+                response.append("\r\n").append(messageId);
             }
             output.write(response.toString() + "\r\n\r\n");
         } catch (SQLException e) {

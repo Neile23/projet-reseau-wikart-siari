@@ -49,7 +49,6 @@ public class MessageManager {
 
     public List<Integer> getMessageIds(String author, String tag, int sinceId, int limit) throws SQLException {
         String sql = queryBuilder.buildSelectMessageIdsQuery(author, tag, sinceId, limit);
-        System.out.println("SQL : " + sql);
         PreparedStatement pstmt = queryPreparer.prepareSelectMessageIdsStatement(conn, sql, author, tag, sinceId,
                 limit);
         return queryExecutor.executeSelectMessageIdsQuery(pstmt);

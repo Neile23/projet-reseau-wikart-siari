@@ -2,6 +2,7 @@ package Database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -23,9 +24,10 @@ public class MessageManager {
         this.queryExecutor = new QueryExecutor();
     }
 
-    public void addMessage(String message, int userId) throws SQLException {
+    public void addMessage(String message, int userId, Integer replyToId, boolean republished) throws SQLException {
         String sql = queryBuilder.buildInsertMessageQuery();
-        PreparedStatement pstmt = queryPreparer.prepareInsertMessageStatement(conn, sql, message, userId);
+        PreparedStatement pstmt = queryPreparer.prepareInsertMessageStatement(conn, sql, message, userId, replyToId,
+                republished);
         queryExecutor.executeUpdate(pstmt);
     }
 
@@ -54,10 +56,23 @@ public class MessageManager {
         return queryExecutor.executeSelectMessageIdsQuery(pstmt);
     }
 
-    public String getMessage(int messageId) throws SQLException {
-        String sql = queryBuilder.buildSelectMessageByIdQuery();
-        PreparedStatement pstmt = queryPreparer.prepareSelectMessageByIdStatement(conn, sql, messageId);
-        return queryExecutor.executeSelectMessageByIdQuery(pstmt);
+    public Message getMessage(int messageId) throws SQLException {
+        String sql = "SELECT * FROM messages WHERE id = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setInt(1, messageId);
+        ResultSet rs = pstmt.executeQuery();
+        if (rs.next()) {
+            int id = rs.getInt("id");
+            String message = rs.getString("message");
+            int userId = rs.getInt("user_id");
+            Integer replyToId = rs.getInt("reply_to_id");
+            if (rs.wasNull()) {
+                replyToId = null;
+            }
+            boolean republished = rs.getBoolean("republished");
+            return new Message(id, message, userId, replyToId, republished);
+        }
+        return null;
     }
 
     public int getUserIdForMessage(int messageId) throws SQLException {
@@ -78,6 +93,12 @@ public class MessageManager {
         pstmt.setString(1, tag);
         pstmt.setInt(2, messageId);
         pstmt.executeUpdate();
+    }
+
+    public List<Message> listReplies(int replyToId) throws SQLException {
+        String sql = queryBuilder.buildSelectRepliesByMessageIdQuery();
+        PreparedStatement pstmt = queryPreparer.prepareSelectRepliesByMessageIdStatement(conn, sql, replyToId);
+        return queryExecutor.executeSelectRepliesByMessageIdQuery(pstmt);
     }
 
 }

@@ -18,6 +18,8 @@ import java.util.regex.Pattern;
 
 import Database.MessageManager;
 import Database.UserManager;
+import Database.Models.Message;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 
@@ -159,8 +161,8 @@ public class Serveur implements Runnable {
             int userId = usersTableManager.getUserId(author);
 
             MessageManager messagesTableManager = new MessageManager(conn);
-            messagesTableManager.addMessage(message, userId);
-            
+            messagesTableManager.addMessage(message, userId, null, false);
+
             return messagesTableManager.getLastMessageId();
 
         } catch (SQLException e) {
@@ -203,12 +205,24 @@ public class Serveur implements Runnable {
         try {
             MessageManager messagesTableManager = new MessageManager(conn);
             UserManager usersTableManager = new UserManager(conn);
-            String message = messagesTableManager.getMessage(msgId);
-            int userId = messagesTableManager.getUserIdForMessage(msgId);
+            Message messageObj = messagesTableManager.getMessage(msgId);
+            String message = messageObj.getMessage();
+            int userId = messageObj.getUserId();
             String author = usersTableManager.getUserName(userId);
+            Integer replyToId = messageObj.getReplyToId();
+            boolean republished = messageObj.isRepublished();
 
             if (message != null && author != null) {
-                output.write(MSG_RESPONSE + " " + AUTHOR_PREFIX + author + "\r\n" + message + "\r\n");
+                StringBuilder msgHeader = new StringBuilder(
+                        MSG_RESPONSE + " " + AUTHOR_PREFIX + author + " msg_id:" + msgId);
+                if (replyToId != null) {
+                    msgHeader.append(" reply_to_id:").append(replyToId);
+                }else{
+                    msgHeader.append(" reply_to_id:").append(-1);
+                }
+                msgHeader.append(" republished:").append(republished);
+
+                output.write(msgHeader.toString() + "\r\n" + message + "\r\n");
             } else {
                 output.write(ERROR_RESPONSE + "\r\n\r\n");
             }

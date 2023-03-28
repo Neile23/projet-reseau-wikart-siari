@@ -88,7 +88,30 @@ public class Publisher {
                     responseLine = input.readLine();
                 }
                 String response = responseBuilder.toString().trim();
-                System.out.println("Server response:\n" + response);
+
+                if (command.equalsIgnoreCase("RCV_MSG")) {
+                    String[] lines = response.split("\n");
+                    System.out.println("Server response:");
+                    for (String line : lines) {
+                        if (line.startsWith("Content:")) {
+                            System.out.println(line.substring(8));
+                        } else if (line.startsWith("ReplyTo:")) {
+                            Integer replyTo = line.substring(8).trim().isEmpty() ? null
+                                    : Integer.parseInt(line.substring(8).trim());
+                            if (!replyTo.equals("-1")) {
+                                System.out.println("  - Reply to message ID " + replyTo);
+                            }
+                        } else if (line.startsWith("Republished:")) {
+                            boolean republished = Boolean.parseBoolean(line.substring(12).trim());
+                            if (republished) {
+                                System.out.println("  - Republished");
+                            }
+                        }
+                    }
+                    System.out.println();
+                } else {
+                    System.out.println("Server response:\n" + response);
+                }
 
             }
 

@@ -3,6 +3,7 @@ package Database.Query;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 
 public class QueryPreparer {
 
@@ -41,10 +42,17 @@ public class QueryPreparer {
         return pstmt;
     }
 
-    public PreparedStatement prepareInsertMessageStatement(Connection conn, String sql, String message, int userId) throws SQLException {
+    public PreparedStatement prepareInsertMessageStatement(Connection conn, String sql, String message, int userId,
+            Integer replyToId, boolean republished) throws SQLException {
         PreparedStatement pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, message);
         pstmt.setInt(2, userId);
+        if (replyToId != null) {
+            pstmt.setInt(3, replyToId);
+        } else {
+            pstmt.setNull(3, Types.INTEGER);
+        }
+        pstmt.setBoolean(4, republished);
         return pstmt;
     }
 
@@ -98,6 +106,13 @@ public class QueryPreparer {
 
     public PreparedStatement prepareSelectLastMessageIdStatement(Connection conn, String sql) throws SQLException {
         PreparedStatement pstmt = conn.prepareStatement(sql);
+        return pstmt;
+    }
+
+    public PreparedStatement prepareSelectRepliesByMessageIdStatement(Connection conn, String sql, int replyToId)
+            throws SQLException {
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setInt(1, replyToId);
         return pstmt;
     }
 

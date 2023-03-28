@@ -34,8 +34,8 @@ public class Follower {
             for (String author : authors) {
                 String request = "RCV_IDS author:" + author.trim() +" limit:100"+ "\r\n\r\n";
                 output.write(request);
-                   output.flush();
-                
+                output.flush();
+
                 // Lire la réponse du serveur
                 String responseLine = input.readLine();
                 while (responseLine != null && !responseLine.isEmpty()) {
@@ -56,20 +56,45 @@ public class Follower {
                 output.flush();
 
                 // Lire la réponse du serveur
-                StringBuilder responseBuilder = new StringBuilder();
                 String responseLine = input.readLine();
+                String replyTo = null;
+                boolean republished = false;
+
+                if (responseLine.startsWith("MSG")) {
+                    String[] metadata = responseLine.split(" ");
+                    for (String meta : metadata) {
+                        if (meta.startsWith("reply_to_id:")) {
+                            replyTo = meta.substring("reply_to_id:".length());
+                        }
+                        if (meta.startsWith("republished:")) {
+                            republished = Boolean.parseBoolean(meta.substring("republished:".length()));
+                        }
+                    }
+                }
+
+                // Lire le contenu du message
+                StringBuilder responseBuilder = new StringBuilder();
+                responseLine = input.readLine();
                 while (responseLine != null && !responseLine.isEmpty()) {
                     responseBuilder.append(responseLine).append("\n");
                     responseLine = input.readLine();
                 }
                 String response = responseBuilder.toString().trim();
-                System.out.println("Message ID " + messageId + ":\n" + response);
+
+                // Afficher les informations du message et son contenu
+                System.out.println("Message ID " + messageId + ":");
+                System.out.println(response);
+                if (!replyTo.equals("-1")) {
+                    System.out.println("  - Reply to: " + replyTo);
+                }
+                if(republished) {
+                    System.out.println(" - Republished");
+                }
+                scanner.close();
             }
 
-            scanner.close();
-
         } catch (IOException e) {
-            logger.log(Level.WARNING, "IO Error: " + e.getMessage());
+        logger.log(Level.WARNING, "IO Error: " + e.getMessage());
         }
     }
 }

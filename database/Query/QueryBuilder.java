@@ -27,7 +27,7 @@ public class QueryBuilder {
     }
 
     public String buildInsertMessageQuery() {
-        return "INSERT INTO messages(message, user_id) VALUES(?, ?)";
+        return "INSERT INTO messages(message, user_id, reply_to_id, republished) VALUES(?, ?, ?, ?)";
     }
 
     public String buildDeleteMessageQuery() {
@@ -67,6 +67,10 @@ public class QueryBuilder {
 
     public String buildSelectLastMessageIdQuery() {
         return "SELECT * FROM messages ORDER BY id DESC LIMIT 1";
+    }
+
+    public String buildSelectRepliesByMessageIdQuery() {
+        return "SELECT * FROM messages WHERE reply_to_id = ?";
     }
 
 }

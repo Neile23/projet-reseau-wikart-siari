@@ -22,7 +22,12 @@ public class QueryExecutor {
             int id = rs.getInt("id");
             String message = rs.getString("message");
             int userId = rs.getInt("user_id");
-            messages.add(new Message(id, message, userId));
+            Integer replyToId = rs.getInt("reply_to_id");
+            if (rs.wasNull()) {
+                replyToId = null;
+            }
+            boolean republished = rs.getBoolean("republished");
+            messages.add(new Message(id, message, userId, replyToId, republished));
         }
         return messages;
     }
@@ -34,7 +39,12 @@ public class QueryExecutor {
             int id = rs.getInt("id");
             String message = rs.getString("message");
             int userId = rs.getInt("user_id");
-            messages.add(new Message(id, message, userId));
+            Integer replyToId = rs.getInt("reply_to_id");
+            if (rs.wasNull()) {
+                replyToId = null;
+            }
+            boolean republished = rs.getBoolean("republished");
+            messages.add(new Message(id, message, userId, replyToId, republished));
         }
         return messages;
     }
@@ -106,6 +116,23 @@ public class QueryExecutor {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    public List<Message> executeSelectRepliesByMessageIdQuery(PreparedStatement pstmt) throws SQLException {
+        ResultSet rs = pstmt.executeQuery();
+        List<Message> messages = new ArrayList<>();
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String message = rs.getString("message");
+            int userId = rs.getInt("user_id");
+            Integer replyToId = rs.getInt("reply_to_id");
+            if (rs.wasNull()) {
+                replyToId = null;
+            }
+            boolean republished = rs.getBoolean("republished");
+            messages.add(new Message(id, message, userId, replyToId, republished));
+        }
+        return messages;
     }
 
 }

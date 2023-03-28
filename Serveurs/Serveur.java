@@ -1,5 +1,4 @@
 
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -29,6 +28,8 @@ public class Serveur implements Runnable {
     private static final String PUBLISH_COMMAND = "PUBLISH";
     private static final String RCV_IDS_COMMAND = "RCV_IDS";
     private static final String RCV_MSG_COMMAND = "RCV_MSG";
+    private static final String REPLY_COMMAND = "REPLY";
+    private static final String REPUBLISH_COMMAND = "REPUBLISH";
     private static final String AUTHOR_PREFIX = "author:";
     private static final String TAG_PREFIX = "tag:";
     private static final String SINCE_ID_PREFIX = "since_id:";
@@ -37,6 +38,8 @@ public class Serveur implements Runnable {
     private static final String MSG_RESPONSE = "MSG";
     private static final String OK_RESPONSE = "OK";
     private static final String ERROR_RESPONSE = "ERROR";
+    private static final String REPLY_TO_ID_PREFIX = "reply_to_id:";
+    private static final String MSG_ID_PREFIX = "msg_id:";
 
     private static final int DEFAULT_PORT = 12345;
     private static final int DEFAULT_LIMIT = 5;
@@ -66,13 +69,17 @@ public class Serveur implements Runnable {
                     request += line + "\r\n";
                     line = input.readLine();
                 }
-                
+
                 String[] parts = request.split(" ", 2);
                 String command = parts[0];
                 String body = parts.length > 1 ? parts[1] : "";
 
                 if (command.equals(PUBLISH_COMMAND)) {
                     handlePublishCommand(body, output);
+                } else if (command.equals(REPLY_COMMAND)) {
+                    handleReplyCommand(body, output); // Nouvelle méthode pour gérer la commande REPLY
+                } else if (command.equals(REPUBLISH_COMMAND)) {
+                    handleRepublishCommand(body, output); // Nouvelle méthode pour gérer la commande REPUBLISH
                 } else if (command.equals(RCV_IDS_COMMAND)) {
                     handleRcvIdsCommand(body, output);
                 } else if (command.equals(RCV_MSG_COMMAND)) {
@@ -217,7 +224,7 @@ public class Serveur implements Runnable {
                         MSG_RESPONSE + " " + AUTHOR_PREFIX + author + " msg_id:" + msgId);
                 if (replyToId != null) {
                     msgHeader.append(" reply_to_id:").append(replyToId);
-                }else{
+                } else {
                     msgHeader.append(" reply_to_id:").append(-1);
                 }
                 msgHeader.append(" republished:").append(republished);
@@ -245,9 +252,94 @@ public class Serveur implements Runnable {
         return body.substring(valueStartIndex, valueEndIndex);
     }
 
+    private void handleReplyCommand(String body, BufferedWriter output) throws IOException {
+        String author = getAuthorFromBody(body);
+        if (author == null) {
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
+            return;
+        }
 
+        String message = getMessageFromBody(body);
+        if (message == null || message.isEmpty()) {
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
+            return;
+        }
 
+        String replyToIdStr = extractValueFromBody(body, REPLY_TO_ID_PREFIX);
+        if (replyToIdStr == null) {
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
+            return;
+        }
 
+        int replyToId = Integer.parseInt(replyToIdStr.trim());
+
+        System.out.println("@" + author + " (reply to " + replyToId + "): " + message);
+        int messageId = addMessageToDatabase(message, author, replyToId);
+        if (messageId != -1) {
+            output.write(OK_RESPONSE + "\r\n\r\n");
+        } else {
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
+        }
+    }
+
+    private void handleRepublishCommand(String body, BufferedWriter output) throws IOException {
+        String author = getAuthorFromBody(body);
+        if (author == null) {
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
+            return;
+        }
+        String msgIdStr = extractValueFromBody(body, MSG_ID_PREFIX);
+        if (msgIdStr == null) {
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
+            return;
+        }
+
+        int msgId = Integer.parseInt(msgIdStr.trim());
+
+        try {
+            MessageManager messagesTableManager = new MessageManager(conn);
+            Message originalMessageObj = messagesTableManager.getMessage(msgId);
+            if (originalMessageObj == null) {
+                output.write(ERROR_RESPONSE + "\r\n\r\n");
+                return;
+            }
+
+            String message = originalMessageObj.getMessage();
+            int newMessageId = addMessageToDatabase(message, author, null, true);
+            if (newMessageId != -1) {
+                output.write(OK_RESPONSE + "\r\n\r\n");
+            } else {
+                output.write(ERROR_RESPONSE + "\r\n\r\n");
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Error while republishing message: " + e.getMessage());
+            output.write(ERROR_RESPONSE + "\r\n\r\n");
+        }
+    }
+
+    private int addMessageToDatabase(String message, String author, Integer replyToId) {
+        return addMessageToDatabase(message, author, replyToId, false);
+    }
+
+    private int addMessageToDatabase(String message, String author, Integer replyToId, boolean republished) {
+        try {
+            UserManager usersTableManager = new UserManager(conn);
+            if (!usersTableManager.userExists(author)) {
+                usersTableManager.addUser(author);
+            }
+
+            int userId = usersTableManager.getUserId(author);
+
+            MessageManager messagesTableManager = new MessageManager(conn);
+            messagesTableManager.addMessage(message, userId, replyToId, republished);
+
+            return messagesTableManager.getLastMessageId();
+
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Error while adding message to database: " + e.getMessage());
+            return -1;
+        }
+    }
 
     public static void main(String[] args) {
         try (ServerSocket ss = new ServerSocket(DEFAULT_PORT)) {

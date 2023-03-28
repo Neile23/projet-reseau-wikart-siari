@@ -27,6 +27,7 @@ public class Publisher {
                 String command = scanner.nextLine();
 
                 if ("exit".equalsIgnoreCase(command)) {
+                    socket.close();
                     break;
                 }
 

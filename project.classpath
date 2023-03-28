@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
     <classpathentry kind="lib" path="lib/sqlite-jdbc-3.41.0.0.jar"/>
+    <classpathentry kind="lib" path="lib/junit-platform-console-standalone-1.9.2"/>
+    <classpathentry kind="lib" path="lib/mockito-core-5.2.0"/>
+    <classpathentry kind="lib" path="lib/HikariCP-5.0.1"/>
 </classpath>

@@ -59,9 +59,11 @@ public class Follower {
                 String responseLine = input.readLine();
                 String replyTo = null;
                 boolean republished = false;
+                String author = null;
 
                 if (responseLine.startsWith("MSG")) {
                     String[] metadata = responseLine.split(" ");
+                    author = metadata[1].substring("author:".length());
                     for (String meta : metadata) {
                         if (meta.startsWith("reply_to_id:")) {
                             replyTo = meta.substring("reply_to_id:".length());
@@ -82,7 +84,7 @@ public class Follower {
                 String response = responseBuilder.toString().trim();
 
                 // Afficher les informations du message et son contenu
-                System.out.println("Message ID " + messageId + ":");
+                System.out.println("Message ID " + messageId + " from @"+ author +":");
                 System.out.println(response);
                 if (!replyTo.equals("-1")) {
                     System.out.println("  - Reply to: " + replyTo);

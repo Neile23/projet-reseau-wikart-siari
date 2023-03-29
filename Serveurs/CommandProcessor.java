@@ -13,6 +13,7 @@ public class CommandProcessor {
     private final BufferedReader input;
     private final BufferedWriter output;
     private final Map<String, CommandHandlerFactory> commandHandlerFactories;
+    private Connection conn;
 
     public CommandProcessor(BufferedReader input, BufferedWriter output,
             Map<String, CommandHandlerFactory> commandHandlerFactories) {
@@ -21,7 +22,7 @@ public class CommandProcessor {
         this.commandHandlerFactories = commandHandlerFactories;
     }
 
-    public void processCommands() throws IOException {
+    public void processCommands() throws IOException, SQLException {
         while (true) {
             String request = "";
             String line = input.readLine();
@@ -40,12 +41,10 @@ public class CommandProcessor {
 
             CommandHandlerFactory commandHandlerFactory = commandHandlerFactories.get(command);
             if (commandHandlerFactory != null) {
-                try (Connection conn = ConnectionPool.getConnection()) {
-                    CommandHandler commandHandler = commandHandlerFactory.createCommandHandler(body, output, conn);
-                    commandHandler.handle();
-                } catch (SQLException e) {
-                    output.write("ERROR\r\n\r\n");
-                }
+                conn = ConnectionPool.getConnection();
+                CommandHandler commandHandler = commandHandlerFactory.createCommandHandler(body, output, conn);
+                commandHandler.handle();
+                conn.close();
             } else {
                 output.write("ERROR\r\n\r\n");
             }

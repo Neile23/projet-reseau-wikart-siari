@@ -4,4 +4,5 @@
     <classpathentry kind="lib" path="lib/junit-platform-console-standalone-1.9.2"/>
     <classpathentry kind="lib" path="lib/mockito-core-5.2.0"/>
     <classpathentry kind="lib" path="lib/HikariCP-5.0.1"/>
+    <classpathentry kind="lib" path="lib/slf4j-api-1.7.36.jar"/>
 </classpath>

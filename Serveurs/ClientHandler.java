@@ -5,7 +5,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,15 +14,11 @@ import Factory.*;
 public class ClientHandler implements Runnable {
 
     private Socket socket;
-    private Connection conn;
     private Map<String, CommandHandlerFactory> commandHandlerFactories;
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
         try {
-            conn = DriverManager.getConnection("jdbc:sqlite:database/database.db");
-            Class.forName("org.sqlite.JDBC");
-
             commandHandlerFactories = new HashMap<>();
             commandHandlerFactories.put("PUBLISH", new PublishCommandHandlerFactory());
             commandHandlerFactories.put("REPLY", new ReplyCommandHandlerFactory());
@@ -43,6 +39,8 @@ public class ClientHandler implements Runnable {
             commandProcessor.processCommands();
 
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

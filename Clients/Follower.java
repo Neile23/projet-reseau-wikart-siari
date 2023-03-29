@@ -32,7 +32,7 @@ public class Follower {
             // Récupérer les identifiants des messages des auteurs
             List<Integer> messageIds = new ArrayList<>();
             for (String author : authors) {
-                String request = "RCV_IDS author:" + author.trim() +" limit:100"+ "\r\n\r\n";
+                String request = "RCV_IDS author:@" + author.trim() +" limit:100"+ "\r\n\r\n";
                 output.write(request);
                 output.flush();
 

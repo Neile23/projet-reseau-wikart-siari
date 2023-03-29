@@ -35,12 +35,12 @@ public class Publisher {
                     case "PUBLISH":
                         System.out.println("Message : ");
                         String message = scanner.nextLine();
-                        String request = "PUBLISH author:" + author + "\r\n" + message + "\r\n\r\n";
+                        String request = "PUBLISH author:@" + author + "\r\n" + message + "\r\n\r\n";
                         output.write(request);
                         break;
 
                     case "RCV_IDS":
-                        System.out.println("Enter the author ('user', optional): ");
+                        System.out.println("Enter the author ('@user', optional): ");
                         String targetAuthor = scanner.nextLine();
                         System.out.println("Enter the tag ('#tag', optional): ");
                         String tag = scanner.nextLine();

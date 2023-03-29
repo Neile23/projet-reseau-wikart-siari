@@ -34,7 +34,18 @@ public class Util {
         if (authorIndex == -1) {
             return null;
         }
-        return body.substring(AUTHOR_PREFIX.length(), body.indexOf("\r"));
+        int startIndex = authorIndex + AUTHOR_PREFIX.length();
+        int endIndex = body.indexOf(" ", startIndex);
+        int endIndexCarriageReturn = body.indexOf("\r", startIndex);
+
+        if (endIndexCarriageReturn != -1 && (endIndexCarriageReturn < endIndex || endIndex == -1)) {
+            endIndex = endIndexCarriageReturn;
+        }
+
+        if (endIndex == -1) {
+            endIndex = body.length(); // In case there is no whitespace or \r after the author name
+        }
+        return body.substring(startIndex, endIndex);
     }
 
     public static String getMessageFromBody(String body) {

@@ -35,7 +35,7 @@ public class PublishCommandHandler implements CommandHandler{
             return;
         }
 
-        System.out.println("@" + author + " : " + message);
+        System.out.println(author + " : " + message);
         int messageId = Util.addMessageToDatabase(conn, message, author, null, false);
         if (messageId != -1) {
             // Extract tags from the message

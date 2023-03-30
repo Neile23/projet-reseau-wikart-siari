@@ -43,6 +43,8 @@ public class RepublishCommandHandler implements CommandHandler{
             }
 
             String message = originalMessageObj.getMessage();
+
+            System.out.println(author + " (republished)" + " : " + message);
             int newMessageId = Util.addMessageToDatabase(conn, message, author, null, true);
             if (newMessageId != -1) {
                 output.write(Util.OK_RESPONSE + "\r\n\r\n");

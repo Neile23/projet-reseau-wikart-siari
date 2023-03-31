@@ -1,12 +1,12 @@
-package Database;
+package database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
-import Database.Models.User;
-import Database.Query.*;
+import database.Models.User;
+import database.Query.*;
 
 public class UserManager {
 

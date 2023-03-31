@@ -1,4 +1,4 @@
-package Database.Query;
+package database.Query;
 
 public class QueryBuilder {
 

@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import Database.MessageManager;
-import Database.Models.Message;
+import database.MessageManager;
+import database.Models.Message;
 
 public class RepublishCommandHandler implements CommandHandler{
     private Connection conn;

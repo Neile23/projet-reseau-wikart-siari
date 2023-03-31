@@ -9,7 +9,7 @@ public class ConnectionPool {
 
     static {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:sqlite:Database/Database.db");
+        config.setJdbcUrl("jdbc:sqlite:database/database.db");
         config.setMaximumPoolSize(10);
         config.setConnectionTimeout(5000);
         dataSource = new HikariDataSource(config);

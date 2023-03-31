@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import Database.MessageManager;
+import database.MessageManager;
 
 public class RcvIdsCommandHandler implements CommandHandler {
     private String body;

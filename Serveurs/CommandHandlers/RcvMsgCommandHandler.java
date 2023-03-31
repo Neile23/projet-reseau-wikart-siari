@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import Database.MessageManager;
-import Database.UserManager;
-import Database.Models.Message;
+import database.MessageManager;
+import database.UserManager;
+import database.Models.Message;
 
 public class RcvMsgCommandHandler implements CommandHandler {
     private final String body;

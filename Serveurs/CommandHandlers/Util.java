@@ -9,8 +9,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Database.MessageManager;
-import Database.UserManager;
+import database.MessageManager;
+import database.UserManager;
 
 public class Util {
     private static final Logger logger = Logger.getLogger(Util.class.getName());

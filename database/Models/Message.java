@@ -1,4 +1,4 @@
-package Database.Models;
+package database.Models;
 
 public class Message {
     private int id;

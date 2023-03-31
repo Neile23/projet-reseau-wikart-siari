@@ -1,4 +1,4 @@
-package Database.Models;
+package database.Models;
 
 public class User {
     private int id;

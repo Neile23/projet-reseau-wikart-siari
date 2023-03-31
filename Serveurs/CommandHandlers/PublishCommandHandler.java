@@ -7,7 +7,8 @@ import java.sql.SQLException;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import Database.MessageManager;
+
+import database.MessageManager;
 
 public class PublishCommandHandler implements CommandHandler{
     private static final Logger logger = Logger.getLogger(PublishCommandHandler.class.getName());

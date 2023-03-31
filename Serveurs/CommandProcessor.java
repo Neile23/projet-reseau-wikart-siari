@@ -7,10 +7,10 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import CommandHandlers.CommandHandler;
-import Database.MessageManager;
-import Database.UserManager;
-import Database.Models.Message;
 import Factory.CommandHandlerFactory;
+import database.MessageManager;
+import database.UserManager;
+import database.Models.Message;
 
 public class CommandProcessor {
 
